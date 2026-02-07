@@ -56,13 +56,13 @@ def closed_form_ridge_regression(x_train, y_train, lam):
 
 
 def ridge_regression_gradient(X : np.ndarray, y : np.ndarray, w : np.array, lam:float):
-    #return (2/len(X))*(X@w-y)@X + lam*np.sign(w)
-    return squaredLossGradient(X,y,w) + lam*np.sign(w) if np.all(w,0) else squaredLossGradient(X,y,w)
+    n = len(X)
+    return squaredLossGradient(X,y,w) + (2/n)*lam*w
 
 def ridge_regression_loss(X : np.ndarray, y : np.ndarray, w : np.array, lam:float):
-    return squaredLoss(X,y,w)+lam*LA.norm(w,2) if np.all(w,0) else squaredLoss(X,y,w)
+    return squaredLoss(X, y, w) + lam * np.linalg.norm(w)**2
 
-def squaredLoss(X,y,w):
+def squaredLoss(X,y,w, lam=0):
     """
     Calcualtes squared loss for linear model with weights w on data X with targets y.
     Parameters
@@ -80,7 +80,7 @@ def squaredLoss(X,y,w):
     """
     return (np.linalg.norm((y-X@w),2)**2)/len(X)
 
-def squaredLossGradient(X : np.ndarray, y : np.ndarray, w : np.array):
+def squaredLossGradient(X : np.ndarray, y : np.ndarray, w : np.array, lam=0):
     """
     Calculates the gradient of the squared loss for linear model with weights w on data X with targets y.
     Parameters
@@ -98,7 +98,9 @@ def squaredLossGradient(X : np.ndarray, y : np.ndarray, w : np.array):
     """
     #TODO fix overflow
     #print((X@w-y))
-    return (2/len(X))*(X@w-y)@(X)
+    #return (2/len(X))*(X@w-y)@(X)
+    return (2/len(X)) * X.T @ (X @ w - y)
+
 
 def polySquaredLoss(X, y, w, lam=0):
     """
@@ -172,12 +174,12 @@ def gradientDescent(gradientFunction,lossFunction,X,y,lam = 0,w_0=None, alpha=0.
     for t in range(t_max):                  #stopper at t_max, maximum iteractions TODO fix
         if not fixed_alpha:
             alpha = t0/(t+1)                    #optional: update alpha each step, as per Cornell's Best Practices
-        s = -alpha*gradientFunction(X,y,w)      #evaluate stepsize using learning rate (alpha) and the given gradient function
+        s = -alpha*gradientFunction(X,y,w,lam)      #evaluate stepsize using learning rate (alpha) and the given gradient function
         w = w + s                               #update model weights
         ws.append(w.copy())                     #add to output (copy to avoid reference issues)
         #print('weights at iteration ',t)
         #print(w)
-        losses.append(lossFunction(X,y,w))        #add to output
+        losses.append(lossFunction(X,y,w,lam))        #add to output
         #print(s)
         if(np.linalg.norm(s,2) < tol):      #if stepsize is smaller than tol, stop
             print("Converged in %d iterations at tol=%g" % (t, tol))

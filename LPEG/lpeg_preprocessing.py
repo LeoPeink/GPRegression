@@ -45,7 +45,7 @@ def add_bias_term(X):
     numpy.ndarray
         Data matrix with bias term added, shape (n_samples, n_features + 1)
     """
-    X = np.hstack((X, np.ones((X.shape[0],1))))    #add 1s to X so we learn b as well
+    X = np.hstack((np.ones((X.shape[0],1)),X))    #add 1s to X so we learn b as well
     return X
 
 def remove_bias_term(X):
